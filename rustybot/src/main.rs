@@ -43,19 +43,33 @@ fn setup_logger() {
     use self::log_setup::{config_builder, logger_builder, root_builder};
     use log::LevelFilter;
     use log4rs::{
-        append::file::FileAppender,
+        append::rolling_file::{RollingFileAppender, policy::compound},
         config::Appender,
-        encode::pattern::PatternEncoder};
+        encode::pattern::PatternEncoder
+    };
 
+    // ROLLING WINDOW CONFIGS //
+    let window_size = 3; // log0, log1, log2
+    let fixed_window_roller = compound::roll::fixed_window::FixedWindowRoller::builder()
+        .build("log/rusty{}.log",window_size)
+        .unwrap();
+
+    let size_limit = 1000 * 1024; // 1MB as max log file size to roll
+    let size_trigger = compound::trigger::size::SizeTrigger::new(size_limit);
+
+    let compound_policy = compound::CompoundPolicy::new(Box::new(size_trigger),Box::new(fixed_window_roller));
+
+    // LOG FILE CONFIG //
     let pattern = PatternEncoder::new("{d(%Y-%m-%dT%H:%M:%S%.3f%Z)} {l:5.5} {t} - {m}{n}");
 
     let mut config = config_builder().appender(
         Appender::builder().build(
             "file",
             Box::new(
-                FileAppender::builder()
+                RollingFileAppender::builder()
                     .encoder(Box::new(pattern))
-                    .build("log/rusty.log").unwrap(),
+                    .build("log/rusty.log", Box::new(compound_policy))
+                    .unwrap(),
             ),
         ),
     );
