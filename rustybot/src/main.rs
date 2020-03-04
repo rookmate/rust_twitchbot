@@ -2,6 +2,11 @@ extern crate irc;
 extern crate log;
 extern crate log4rs;
 
+const LOG_FILEPATH: &str = "log/rusty.log";
+const LOG_FILEPATH_ROLL: &str = "log/rusty{}.log";
+const NUM_LOG_FILE_HISTORY: u32 = 3; // Number of logfiles to keep in disk
+const LOG_FILESIZE: u64 = 1000 * 1024; // 1MB as max log file size to roll
+
 mod log_setup {
     use log4rs::config::{
         Appender,
@@ -49,15 +54,18 @@ fn setup_logger() {
     };
 
     // ROLLING WINDOW CONFIGS //
-    let window_size = 3; // log0, log1, log2
+    let window_size = NUM_LOG_FILE_HISTORY; // log0, log1, log2
     let fixed_window_roller = compound::roll::fixed_window::FixedWindowRoller::builder()
-        .build("log/rusty{}.log",window_size)
+        .build(LOG_FILEPATH_ROLL, window_size)
         .unwrap();
 
-    let size_limit = 1000 * 1024; // 1MB as max log file size to roll
+    let size_limit = LOG_FILESIZE;
     let size_trigger = compound::trigger::size::SizeTrigger::new(size_limit);
 
-    let compound_policy = compound::CompoundPolicy::new(Box::new(size_trigger),Box::new(fixed_window_roller));
+    let compound_policy = compound::CompoundPolicy::new(
+        Box::new(size_trigger),
+        Box::new(fixed_window_roller)
+    );
 
     // LOG FILE CONFIG //
     let pattern = PatternEncoder::new("{d(%Y-%m-%dT%H:%M:%S%.3f%Z)} {l:5.5} {t} - {m}{n}");
@@ -68,7 +76,7 @@ fn setup_logger() {
             Box::new(
                 RollingFileAppender::builder()
                     .encoder(Box::new(pattern))
-                    .build("log/rusty.log", Box::new(compound_policy))
+                    .build(LOG_FILEPATH, Box::new(compound_policy))
                     .unwrap(),
             ),
         ),
