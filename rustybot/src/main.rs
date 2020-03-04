@@ -15,18 +15,18 @@ mod log_setup {
         Root, RootBuilder,
     };
 
-    pub(crate) fn logger_builder() -> LoggerBuilder {
+    pub(super) fn logger_builder() -> LoggerBuilder {
         Logger::builder()
             .appender("stdout")
             .appender("file")
             .additive(false)
     }
 
-    pub(crate) fn root_builder() -> RootBuilder {
+    pub(super) fn root_builder() -> RootBuilder {
         Root::builder().appender("stdout")
     }
 
-    pub(crate) fn config_builder() -> ConfigBuilder {
+    pub(super) fn config_builder() -> ConfigBuilder {
         use log4rs::{append::console::ConsoleAppender, encode::pattern::PatternEncoder};
 
         let pattern = PatternEncoder::new("{d(%Y-%m-%dT%H:%M:%S%.3f%Z)} {highlight({l:5.5})} {t} - {m}{n}");
