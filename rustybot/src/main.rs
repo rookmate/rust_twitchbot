@@ -89,7 +89,10 @@ fn setup_logger() {
 
 fn main() {
     use std::env;
-    use irc::client::prelude::*;
+    use irc::{
+        client::prelude::*,
+        proto::command::{CapSubCommand, Command},
+    };
     use log::{info};
 
     setup_logger();
@@ -108,6 +111,27 @@ fn main() {
     let mut reactor = IrcReactor::new().unwrap();
     let irc_client = reactor.prepare_client_and_connect(&cfg).unwrap();
     irc_client.identify().unwrap();
+    irc_client.send(Command::CAP(
+            None,
+            CapSubCommand::REQ,
+            Some(String::from("twitch.tv/tags")),
+            None,
+            )
+    ).unwrap();
+    irc_client.send(Command::CAP(
+            None,
+            CapSubCommand::REQ,
+            Some(String::from("twitch.tv/commands")),
+            None,
+            )
+    ).unwrap();
+    irc_client.send(Command::CAP(
+            None,
+            CapSubCommand::REQ,
+            Some(String::from("twitch.tv/membership")),
+            None,
+            )
+    ).unwrap();
 
     reactor.register_client_with_handler(irc_client, |client, raw_msg| {
         info!("Incoming <<< {}", raw_msg);
