@@ -1,2 +1,2 @@
 # rust_twitchbot
-A Twitch chatbot in Rust
+Eventually will be Twitch chatbot in Rust
