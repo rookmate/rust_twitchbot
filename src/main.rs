@@ -2,6 +2,8 @@ extern crate irc;
 extern crate log;
 extern crate log4rs;
 
+mod user;
+
 const LOG_FILEPATH: &str = "log/rusty.log";
 const LOG_FILEPATH_ROLL: &str = "log/rusty{}.log";
 const NUM_LOG_FILE_HISTORY: u32 = 3; // Number of logfiles to keep in disk
@@ -104,7 +106,7 @@ fn main() {
         server: Some("irc.chat.twitch.tv".to_owned()),
         port: Some(6667),
         password: Some(oauth_token),    // Token from oauth token to tmi
-        channels: Some(vec!["#morpho_one".to_owned()]),
+        channels: Some(vec!["#bebe872".to_owned()]),
         ..Default::default()
     };
 
@@ -136,6 +138,7 @@ fn main() {
     reactor.register_client_with_handler(irc_client, |client, raw_msg| {
         info!("Incoming <<< {}", raw_msg);
         if let Command::PRIVMSG(ref channel, ref msg) = raw_msg.command {
+            crate::user::user::fill_user_fields(msg);
             info!("{}: {}", raw_msg.source_nickname().unwrap(), msg);
             if msg.contains(client.current_nickname()) {
                 client.send_privmsg(channel, "Reporting for duty!").unwrap();
